@@ -172,12 +172,9 @@ source venv/bin/activate  # Trên Linux/macOS
 pip install -r requirements.txt
 ```
 
-### 2. Chuẩn bị Dữ liệu Local (Local Data Setup)
+### 2. Chuẩn bị Dữ liệu (Data Setup)
 
-> [!NOTE]
-> Để bảo mật dữ liệu giao dịch và thông tin kinh doanh của Hương Vân Trà, toàn bộ các file Excel thực tế trong thư mục `data/` được cấu hình `.gitignore` và không lưu trữ trên kho Git công khai.
-
-Sau khi clone repo về máy local, bạn hãy sao chép 6 file Excel vào thư mục `data/`:
+Copy 6 file Excel vào thư mục `data/`:
 - `data/categories.xlsx`
 - `data/products.xlsx`
 - `data/product_variants.xlsx`
@@ -288,47 +285,42 @@ Kiểm tra sức khỏe hệ thống và trạng thái nạp dữ liệu.
 
 ---
 
-## 📁 Cấu Trúc Dự Án (Local vs. Git Repository)
-
-> [!NOTE]
-> Nhằm bảo vệ bí mật kinh doanh và tối ưu dung lượng kho lưu trữ, các file dữ liệu giao dịch nội bộ trong `data/` và cache mô hình trong `artifacts/` được cấu hình `.gitignore` và chỉ lưu trữ tại môi trường máy trạm (Local Machine).
+## 📁 Cấu Trúc Dự Án
 
 ```text
 Recommend_Tra/
-├── data/                                 # [LOCAL ONLY - .gitignore] 6 bảng dữ liệu Excel thực tế
+├── data/                                 # [copy vào đây] 6 bảng dữ liệu Excel thực tế (.xlsx)
 │   ├── categories.xlsx                   # Danh mục hương vị trà
 │   ├── products.xlsx                     # Danh mục sản phẩm active
 │   ├── product_variants.xlsx             # Biến thể SKU và đơn giá
 │   ├── ingredients.xlsx                  # Bảng phân định nguyên liệu / bao bì
 │   ├── product_ingredients.xlsx          # Định mức BOM liên kết sản phẩm - nguyên liệu
-│   ├── customer_interactions.xlsx        # 9,350 giao dịch thực tế của 980 khách hàng
-│   └── .gitkeep                          # Giữ cấu trúc thư mục trên Git
-├── artifacts/                            # [LOCAL ONLY - .gitignore] Lưu trữ model weights / cache
-│   └── .gitkeep                          # Giữ cấu trúc thư mục trên Git
-├── docs/                                 # [GIT TRACKED] Tài liệu kỹ thuật chuyên sâu
+│   └── customer_interactions.xlsx        # 9,350 giao dịch thực tế của 980 khách hàng
+├── artifacts/                            # Thư mục lưu trữ model weights / cache
+├── docs/                                 # Tài liệu kỹ thuật chuyên sâu
 │   ├── architecture/system_design.md     # Thiết kế kiến trúc Clean Architecture
 │   ├── reports/                          # Báo cáo kỹ thuật chuẩn PDF & HTML
 │   │   ├── Personalized_Tea_Recommender_System_Report.html
 │   │   └── Personalized_Tea_Recommender_System_Report.pdf
 │   └── research/                         # Khảo sát SOTA Feedback Loop & Continual Learning
 │       └── recommendation_feedback_loop_sota.md
-├── src/                                  # [GIT TRACKED] Mã nguồn module hóa Clean Architecture
+├── src/                                  # Mã nguồn module hóa Clean Architecture
 │   ├── config.py                         # Cấu hình trọng số và siêu tham số
 │   ├── data/                             # Nạp, tiền xử lý, chia train/test
 │   ├── models/                           # Model Zoo (Pop, CB, CF, Hybrid, EASE)
 │   ├── evaluation/                       # Chỉ số đo lường Recall, NDCG, MAP, Coverage
 │   ├── service/                          # Engine suy luận, FastAPI app, Schemas
 │   └── app/                              # Giao diện Streamlit Dashboard
-├── tests/                                # [GIT TRACKED] 27 Unit & Integration test cases (100% PASS)
-├── scripts/                              # [GIT TRACKED] Kịch bản thực thi tác vụ
+├── tests/                                # 27 Unit & Integration test cases (100% PASS)
+├── scripts/                              # Kịch bản thực thi tác vụ
 │   ├── train_and_evaluate.py             # Chạy benchmark & demo console
 │   ├── experiment_sota_models.py         # Khảo sát 10 mô hình SOTA
 │   ├── run_api.py                        # Chạy FastAPI REST API Server
 │   ├── run_demo.py                       # Chạy Streamlit Dashboard
 │   └── generate_report_pdf.py            # Biên dịch báo cáo PDF vector
-├── requirements.txt                      # [GIT TRACKED] Danh mục dependencies sản phẩm
-├── .gitignore                            # [GIT TRACKED] Cấu hình loại bỏ file rác & dữ liệu nội bộ
-└── README.md                             # [GIT TRACKED] Tài liệu hướng dẫn sử dụng dự án
+├── requirements.txt                      # Danh mục dependencies sản phẩm
+├── .gitignore                            # Cấu hình loại bỏ file rác & dữ liệu tạm
+└── README.md                             # Tài liệu hướng dẫn sử dụng dự án
 ```
 
 ---
