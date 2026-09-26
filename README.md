@@ -3,11 +3,10 @@
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.32+-FF4B4B.svg?logo=streamlit&logoColor=white)](https://streamlit.io)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.2+-EE4C2C.svg?logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![Tests](https://img.shields.io/badge/PyTest-27%2F27%20Passed-brightgreen.svg)]()
 [![License](https://img.shields.io/badge/License-MIT-green.svg)]()
 
-> **Hệ thống AI đề xuất sản phẩm trà cá nhân hóa thông minh** dành cho chuỗi thương hiệu **Hương Vân Trà**, kết hợp **Lọc cộng tác (Collaborative Filtering)**, **Khai phá cấu trúc nguyên liệu vị giác (BOM Content-Based)** và mô hình tự mã hóa tuyến tính **EASE (SOTA WWW 2019)** nhằm giải quyết bài toán tư vấn bán hàng đa mục tiêu (*Khám phá món mới vs. Mua lại định kỳ*) trong thời gian thực (< 50ms).
+> **Hệ thống AI đề xuất sản phẩm trà cá nhân hóa thông minh** dành cho chuỗi thương hiệu **Hương Vân Trà**, kết hợp **Lọc cộng tác (Collaborative Filtering)**, **Khai phá cấu trúc nguyên liệu vị giác (BOM Content-Based)** và **Mô hình lai đa mục tiêu (Hybrid Multi-Objective)** nhằm giải quyết bài toán tư vấn bán hàng đa mục tiêu (*Khám phá món mới vs. Mua lại định kỳ*) trong thời gian thực (< 50ms).
 
 ---
 
@@ -28,7 +27,7 @@
 
 ## 🌟 Điểm Nổi Bật & Giá Trị Kinh Doanh
 
-- **Độ chính xác ấn tượng**: Recall@5 đạt **~50%** (49.66%), NDCG@5 đạt **0.4141**, Precision@5 đạt **19.75%** trên tập dữ liệu giao dịch thực tế gồm 9,350 tương tác của 980 khách hàng.
+- **Độ chính xác ấn tượng**: Recall@5 đạt **47.06%**, NDCG@5 đạt **0.3864**, Precision@5 đạt **18.72%**, Catalog Coverage đạt **75.00%** trên tập dữ liệu giao dịch thực tế gồm 9,350 tương tác của 980 khách hàng.
 - **Chiến lược đa mục tiêu (Multi-Objective)**: Tự động phân bổ linh hoạt **3 slot Khám Phá Mới** (*New Discovery*) theo gu tương đồng và **2 slot Mua Lại Định Kỳ** (*Repeat Purchase*) theo chu kỳ tiêu dùng trà.
 - **Giải quyết triệt để Cold-Start**:
   - *Sản phẩm mới ra mắt*: Khai thác định mức nguyên liệu BOM (hoa sen, nhài, bưởi, trà cổ thụ...) để gợi ý ngay ngày đầu mở bán.
@@ -59,12 +58,12 @@ flowchart TD
     subgraph ModelZoo ["3. TẦNG MÔ HÌNH HỌC MÁY (Model Zoo)"]
         M1["Popularity Recommender<br/>(Baseline & Fallback)"]
         M2["BOM Content-Based<br/>(TF-IDF N-gram 1-2)"]
-        M3["Collaborative Filtering<br/>(Item-Item Cosine & SVD)"]
-        M4["SOTA Linear Autoencoder<br/>(EASE WWW 2019)"]
+        M3["Collaborative Filtering<br/>(Item-Item Cosine)"]
+        M4["Collaborative SVD<br/>(Matrix Factorization)"]
     end
 
     subgraph RankingEngine ["4. TẦNG ĐIỀU PHỐI & PHÂN BỔ (Ranking Engine)"]
-        R1["Hybrid Linear Fusion<br/>Score = 0.40 CF + 0.40 EASE + 0.15 BOM + 0.05 Pop"]
+        R1["Hybrid Linear Fusion<br/>Score = 0.50 CF + 0.35 BOM + 0.15 Pop"]
         R2["Multi-Objective Allocator<br/>3 Món Mới + 2 Món Mua Lại"]
     end
 
@@ -94,7 +93,7 @@ flowchart TD
 
 ### Pipeline 3: Suy Luận Thời Gian Thực & Phân Bổ Đa Mục Tiêu
 - Khi nhận yêu cầu với mã `customer_id`:
-  - Nếu là khách quen: Kết hợp điểm từ Item-Item CF, EASE Autoencoder và Content-Based BOM; phân bổ 3 slot món mới + 2 slot mua lại (hoặc 100% món mới nếu bật cờ `exclude_purchased`).
+  - Nếu là khách quen: Kết hợp điểm từ Item-Item CF, Content-Based BOM và Popularity; phân bổ 3 slot món mới + 2 slot mua lại (hoặc 100% món mới nếu bật cờ `exclude_purchased`).
   - Nếu là khách mới tinh: Tự động Fallback sang danh sách sản phẩm bán chạy nhất trong danh mục.
 
 ---
@@ -107,8 +106,7 @@ flowchart TD
 | **Content-Based BOM** | TF-IDF N-gram (1,2) trên nguyên liệu vị giác + Cosine Similarity | Giải quyết Item Cold-Start khi ra mắt trà mới |
 | **Item-Item CF** | Đo lường đồng xuất hiện mua sắm giữa các cặp sản phẩm | Bắt trúng sở thích của khách quen |
 | **SVD Matrix Factorization** | Phân rã ma trận tương tác sang $k=12$ chiều tiềm ẩn | Nắm bắt các trục gu vị giác ẩn |
-| **EASE (Autoencoder)** | Tự mã hóa tuyến tính nghiệm đóng $B = -P / \text{diag}(P)$ | Đạt NDCG@5 đơn mô hình cao nhất (0.4111) |
-| **Ultra-Ensemble Hybrid** | Tổ hợp tuyến tính có trọng số giữa CF, EASE, BOM và Popularity | Đạt hiệu năng tối ưu toàn diện (Recall 49.66%) |
+| **Hybrid Recommender (v1.1)** | Tổ hợp tuyến tính có trọng số giữa Item-Item CF, BOM và Popularity | Đạt cân bằng tối ưu giữa độ chính xác và khám phá |
 
 ---
 
@@ -119,14 +117,10 @@ Toàn bộ các mô hình được đánh giá đối đầu trên tập Test g�
 | STT | Mô Hình / Thuật Toán | Recall@5 | Precision@5 | NDCG@5 | MAP@5 | Catalog Coverage |
 |:---:|:---|:---:|:---:|:---:|:---:|:---:|
 | 1 | **Popularity (Baseline)** | 30.02% | 12.28% | 0.2395 | 0.1794 | 31.25% |
-| 2 | **Content-Based (BOM TF-IDF)** | 24.99% | 10.05% | 0.1980 | 0.1444 | 95.31% |
-| 3 | **Collaborative (Item-Item CF)** | 48.95% | 19.51% | 0.4050 | 0.3239 | 78.12% |
+| 2 | **Content-Based (BOM TF-IDF)** | 24.99% | 10.05% | 0.1980 | 0.1444 | **95.31%** |
+| 3 | **Collaborative (Item-Item CF)** | **48.95%** | **19.51%** | **0.4050** | **0.3239** | 78.12% |
 | 4 | **Collaborative (SVD Factorization)** | 32.68% | 13.61% | 0.2755 | 0.2135 | 84.38% |
-| 5 | **BM25 Item-Item CF** | 47.93% | 19.09% | 0.3989 | 0.3192 | 78.12% |
-| 6 | **BPR-MF (PyTorch Pairwise)** | 39.27% | 16.17% | 0.3182 | 0.2463 | **98.44%** |
-| 7 | **EASE (Shallow Autoencoder)** | 48.76% | 19.38% | 0.4111 | 0.3285 | 76.56% |
-| 8 | **Hybrid v1.1 (CF + BOM + Pop)** | 47.06% | 18.72% | 0.3864 | 0.3071 | 75.00% |
-| 9 | 🏆 **Ultra-Ensemble Hybrid v2.0** | **49.66%** | **19.75%** | **0.4141** | **0.3334** | **78.12%** |
+| 5 | 🏆 **Hybrid Recommender (v1.1)** | 47.06% | 18.72% | 0.3864 | 0.3071 | 75.00% |
 
 ---
 
@@ -148,7 +142,7 @@ Dữ liệu đầu vào đặt tại thư mục `data/` bao gồm 6 bảng Excel
 - **Ngôn ngữ**: Python 3.10+ (đã kiểm thử và tương thích hoàn toàn Python 3.12, 3.13)
 - **API & Dịch vụ**: FastAPI, Uvicorn, Pydantic v2
 - **Dashboard Web**: Streamlit
-- **Khoa học dữ liệu & ML**: Scikit-Learn, SciPy, NumPy, Pandas, PyTorch
+- **Khoa học dữ liệu & ML**: Scikit-Learn, SciPy, NumPy, Pandas
 - **Kiểm thử tự động**: PyTest, PyTest-Asyncio, HTTPX
 - **Báo cáo kỹ thuật**: Playwright, KaTeX, Mermaid.js
 
@@ -206,13 +200,7 @@ uvicorn src.service.api:app --host 0.0.0.0 --port 8000 --reload
 python scripts/train_and_evaluate.py
 ```
 
-### 6. Chạy Thử Nghiệm Mở Rộng 10 Mô Hình SOTA
-
-```bash
-python scripts/experiment_sota_models.py
-```
-
-### 7. Chạy Kiểm Thử Toàn Bộ (Test Suite)
+### 6. Chạy Kiểm Thử Toàn Bộ (Test Suite)
 
 ```bash
 python -m pytest tests/ -v
@@ -296,7 +284,6 @@ Recommend_Tra/
 │   ├── ingredients.xlsx                  # Bảng phân định nguyên liệu / bao bì
 │   ├── product_ingredients.xlsx          # Định mức BOM liên kết sản phẩm - nguyên liệu
 │   └── customer_interactions.xlsx        # 9,350 giao dịch thực tế của 980 khách hàng
-├── artifacts/                            # Thư mục lưu trữ model weights / cache
 ├── docs/                                 # Tài liệu kỹ thuật chuyên sâu
 │   ├── architecture/system_design.md     # Thiết kế kiến trúc Clean Architecture
 │   ├── reports/                          # Báo cáo kỹ thuật chuẩn PDF & HTML
@@ -307,19 +294,16 @@ Recommend_Tra/
 ├── src/                                  # Mã nguồn module hóa Clean Architecture
 │   ├── config.py                         # Cấu hình trọng số và siêu tham số
 │   ├── data/                             # Nạp, tiền xử lý, chia train/test
-│   ├── models/                           # Model Zoo (Pop, CB, CF, Hybrid, EASE)
+│   ├── models/                           # Model Zoo (Popularity, Content-Based, Item-Item CF, SVD, Hybrid)
 │   ├── evaluation/                       # Chỉ số đo lường Recall, NDCG, MAP, Coverage
 │   ├── service/                          # Engine suy luận, FastAPI app, Schemas
 │   └── app/                              # Giao diện Streamlit Dashboard
-├── tests/                                # 27 Unit & Integration test cases (100% PASS)
 ├── scripts/                              # Kịch bản thực thi tác vụ
 │   ├── train_and_evaluate.py             # Chạy benchmark & demo console
-│   ├── experiment_sota_models.py         # Khảo sát 10 mô hình SOTA
 │   ├── run_api.py                        # Chạy FastAPI REST API Server
 │   ├── run_demo.py                       # Chạy Streamlit Dashboard
 │   └── generate_report_pdf.py            # Biên dịch báo cáo PDF vector
 ├── requirements.txt                      # Danh mục dependencies sản phẩm
-├── .gitignore                            # Cấu hình loại bỏ file rác & dữ liệu tạm
 └── README.md                             # Tài liệu hướng dẫn sử dụng dự án
 ```
 
