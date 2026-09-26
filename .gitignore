@@ -83,7 +83,7 @@ logs/
 tmp/
 temp/
 docs/reports/preview/
-
+data
 # Model & Run Artifacts (keep folder structure via .gitkeep)
 artifacts/*
 !artifacts/.gitkeep
