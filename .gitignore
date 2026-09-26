@@ -83,7 +83,11 @@ logs/
 tmp/
 temp/
 docs/reports/preview/
-data
+
+# Local Data directory (confidential internal business data)
+data/*
+!data/.gitkeep
+
 # Model & Run Artifacts (keep folder structure via .gitkeep)
 artifacts/*
 !artifacts/.gitkeep
