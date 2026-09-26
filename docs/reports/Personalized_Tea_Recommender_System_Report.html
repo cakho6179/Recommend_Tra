@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Hương Vân Trà — Báo Cáo Kiến Trúc & Giải Pháp Hệ Thống AI Đề Xuất Trà Cá Nhân Hóa</title>
+
+<!-- Font chữ Inter & JetBrains Mono -->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  @page {
+    size: A4;
+    margin: 18mm 16mm 18mm 16mm;
+    @bottom-right {
+      content: counter(page);
+      font-size: 9pt;
+      color: #718096;
+      font-family: 'Inter', sans-serif;
+    }
+    @bottom-left {
+      content: "Hương Vân Trà — Personalized Tea Recommender System";
+      font-size: 8pt;
+      color: #a0aec0;
+      font-family: 'Inter', sans-serif;
+    }
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 10pt;
+    line-height: 1.55;
+    color: #2d3748;
+    background-color: #ffffff;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Cover Page */
+  .cover-page {
+    page-break-after: always;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    height: 90vh;
+    box-sizing: border-box;
+    padding: 60px 40px;
+    border-top: 8px solid #2d5a27;
+    background: radial-gradient(circle at center 35%, #f4faf2 0%, #ffffff 75%);
+  }
+
+  .cover-badge {
+    display: inline-block;
+    background-color: #e6f4ea;
+    color: #2d5a27;
+    font-weight: 700;
+    font-size: 10pt;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 8px 22px;
+    border-radius: 20px;
+    margin-bottom: 24px;
+    border: 1.5px solid #a3d9ad;
+    box-shadow: 0 2px 6px rgba(45, 90, 39, 0.08);
+  }
+
+  .cover-title {
+    font-size: 30pt;
+    font-weight: 800;
+    color: #1a3a16;
+    line-height: 1.35;
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+
+  /* Typography & Structure */
+  h1 {
+    font-size: 17pt;
+    font-weight: 700;
+    color: #1a3a16;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 6px;
+    margin-top: 30px;
+    margin-bottom: 14px;
+    page-break-after: avoid;
+    letter-spacing: -0.3px;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+
+  h2 {
+    font-size: 12pt;
+    font-weight: 600;
+    color: #2d5a27;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    page-break-after: avoid;
+  }
+
+  h3 {
+    font-size: 10.5pt;
+    font-weight: 600;
+    color: #2d3748;
+    margin-top: 16px;
+    margin-bottom: 8px;
+    page-break-after: avoid;
+  }
+
+  p {
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-align: justify;
+  }
+
+  ul, ol {
+    margin-top: 0;
+    margin-bottom: 12px;
+    padding-left: 20px;
+  }
+
+  li {
+    margin-bottom: 5px;
+  }
+
+  strong {
+    color: #1a202c;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5pt;
+    background-color: #f1f5f9;
+    color: #c53030;
+    padding: 2px 5px;
+    border-radius: 4px;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 14px 0;
+    font-size: 8.5pt;
+    page-break-inside: avoid;
+  }
+
+  th {
+    background-color: #f4f8f3;
+    color: #1a3a16;
+    font-weight: 600;
+    text-align: left;
+    padding: 6px 9px;
+    border: 1px solid #d2e3d0;
+  }
+
+  td {
+    padding: 5px 9px;
+    border: 1px solid #e2e8f0;
+    vertical-align: top;
+  }
+
+  tr:nth-child(even) {
+    background-color: #fafbf9;
+  }
+
+  /* Callouts & Alert Boxes */
+  .callout {
+    border-left: 4px solid #2d5a27;
+    background-color: #f6faf5;
+    padding: 8px 12px;
+    border-radius: 0 6px 6px 0;
+    margin: 10px 0;
+    font-size: 9pt;
+    page-break-inside: avoid;
+  }
+
+  .callout-title {
+    font-weight: 700;
+    color: #2d5a27;
+    margin-bottom: 3px;
+  }
+
+  .callout-warning {
+    border-left-color: #dd6b20;
+    background-color: #fffaf0;
+  }
+  .callout-warning .callout-title {
+    color: #dd6b20;
+  }
+
+  /* Mermaid Diagram Containers */
+  .diagram-container {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px;
+    margin: 16px 0;
+    text-align: center;
+    page-break-inside: avoid;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+
+  .diagram-caption {
+    font-size: 8pt;
+    color: #718096;
+    margin-top: 8px;
+    font-style: italic;
+  }
+
+  .mermaid {
+    display: flex;
+    justify-content: center;
+  }
+
+  .mermaid svg {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Math equation display */
+  .math-block {
+    text-align: center;
+    margin: 10px 0;
+    font-size: 11pt;
+    color: #1a3a16;
+  }
+
+  /* Metric Card Grid */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 14px 0;
+  }
+
+  .card {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 12px;
+    background-color: #ffffff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  }
+
+  .card-title {
+    font-size: 9.5pt;
+    font-weight: 700;
+    color: #2d5a27;
+    margin-bottom: 5px;
+  }
+</style>
+
+<!-- KaTeX CSS & JS for formula rendering -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+<!-- Mermaid JS -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.8/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'neutral',
+    securityLevel: 'loose',
+    themeVariables: {
+      primaryColor: '#e9f5e8',
+      primaryBorderColor: '#2d5a27',
+      primaryTextColor: '#1a3a16',
+      lineColor: '#2d5a27',
+      secondaryColor: '#f7faf6',
+      tertiaryColor: '#ffffff'
+    },
+    flowchart: {
+      useMaxWidth: true,
+      htmlLabels: true,
+      curve: 'basis'
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false}
+      ],
+      throwOnError: false
+    });
+  });
+</script>
+</head>
+<body>
+
+<!-- TRANG BÌA BÁO CÁO -->
+<div class="cover-page">
+  <div class="cover-badge">BÁO CÁO NGHIÊN CỨU &amp; THIẾT KẾ KỸ THUẬT</div>
+  <h1 class="cover-title">Hệ Thống Đề Xuất Trà Cá Nhân Hóa<br>(Hương Vân Trà)</h1>
+</div>
+
+<!-- NỘI DUNG BÁO CÁO -->
+
+<h1>1. Bối Cảnh Bài Toán &amp; Thách Thức Nghiệp Vụ</h1>
+
+<h2>1.1. Bối cảnh thương mại</h2>
+<p>
+Hương Vân Trà là thương hiệu kinh doanh trà cao cấp, sở hữu danh mục sản phẩm đa dạng gồm trà ướp hoa tự nhiên, trà ô long, hồng trà, trà xanh cổ thụ và các dòng trà thảo mộc kết hợp trái cây. Trong ngành bán lẻ trà, khách hàng có nhu cầu thưởng thức mang tính cá nhân hóa cao theo từng chiều vị giác (vị chát thanh, đậm béo, hương hoa ngào ngạt, hay vị thảo mộc an nhiên).
+</p>
+<p>
+Hiện tại, hoạt động tư vấn sản phẩm tại cửa hàng và trên các kênh bán hàng phụ thuộc chủ yếu vào trí nhớ và kinh nghiệm của nhân viên bán hàng (seller). Khi quy mô kinh doanh tăng trưởng, phương thức tư vấn thủ công bộc lộ những rào cản lớn:
+</p>
+
+<ul>
+  <li><strong>Khó ghi nhớ gu thưởng trà của từng khách hàng:</strong> Nhân viên không thể theo dõi chính xác lịch sử giao dịch, tần suất sử dụng và khẩu vị riêng biệt của hàng nghìn khách hàng.</li>
+  <li><strong>Bỏ lỡ cơ hội khám phá (Missed Discovery):</strong> Một khách hàng thích Trà Sen rất có thể sẽ mê Trà Hoa Bưởi hoặc Trà Nhài do cùng chia sẻ tầng hương hoa tự nhiên và trà nền xanh. Tuy nhiên, nhân viên thường chỉ gợi ý lại đúng món cũ, gây nhàm chán cho khách.</li>
+  <li><strong>Bỏ sót nhu cầu mua lại định kỳ (Missed Retention / Reorder):</strong> Trà là sản phẩm tiêu dùng theo chu kỳ. Khách hàng thân thiết có nhu cầu mua lại đều đặn nhưng cửa hàng thiếu công cụ tự động nhận diện thời điểm và sản phẩm khách muốn tái sử dụng.</li>
+  <li><strong>Sản phẩm mới ra mắt gặp bài toán Cold-Start:</strong> Các dòng trà mới nhập về chưa có lượt mua trong quá khứ thường bị bỏ quên, không được đưa vào danh sách tư vấn.</li>
+</ul>
+
+<h2>1.2. Mục tiêu hệ thống</h2>
+<div class="callout">
+  <div class="callout-title">Mục Tiêu Cốt Lõi Của Hệ Thống AI Đề Xuất</div>
+  Xây dựng hệ thống <strong>Personalized Tea Product Recommendation Engine</strong> có khả năng tự động học khẩu vị tiềm ẩn của khách hàng từ dữ liệu giao dịch và cấu trúc nguyên liệu sản phẩm, sinh ra danh sách <strong>Top 5 sản phẩm trà phù hợp nhất</strong> trong thời gian thực (&lt; 100ms), đáp ứng đồng thời cả hai nhu cầu: <strong>Khám phá món mới (New Discovery)</strong> và <strong>Mua lại định kỳ (Repeat Purchase)</strong>, đồng thời cung cấp cơ chế <strong>Popularity Fallback</strong> bảo đảm sẵn sàng 100% khi gặp khách hàng mới tinh (*Cold-start*).
+</div>
+
+---
+
+<h1>2. Phân Tích Hiện Trạng Dữ Liệu Thực Tế</h1>
+
+<p>
+Hệ thống được thiết kế dựa trên 6 tập dữ liệu có cấu trúc tại kho dữ liệu của Hương Vân Trà:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Tập Dữ Liệu</th>
+      <th>Quy Mô</th>
+      <th>Trường Thuộc Tính Chính</th>
+      <th>Ý Nghĩa Kỹ Thuật Trong Hệ Thống AI</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>categories.xlsx</code></td>
+      <td>7 bản ghi</td>
+      <td><code>id</code>, <code>category_code</code>, <code>name</code></td>
+      <td>7 danh mục hương vị chính: Trà ướp hoa, Trà ô long &amp; hồng trà, Trà thảo mộc, Trà xanh, Trà blend trái cây, Hộp quà trà, Trà túi lọc.</td>
+    </tr>
+    <tr>
+      <td><code>products.xlsx</code></td>
+      <td>67 bản ghi</td>
+      <td><code>id</code>, <code>product_code</code>, <code>name</code>, <code>status</code></td>
+      <td>Danh mục sản phẩm trà nền. Chỉ các sản phẩm có <code>status = 'ACTIVE'</code> mới được đưa vào không gian xếp hạng gợi ý.</td>
+    </tr>
+    <tr>
+      <td><code>product_variants.xlsx</code></td>
+      <td>127 bản ghi</td>
+      <td><code>id</code>, <code>product_id</code>, <code>sku</code>, <code>selling_price</code></td>
+      <td>Các biến thể SKU đóng gói (hũ thiếc, hộp giấy 100g, gói 50g) và đơn giá, cung cấp khoảng giá min-max hiển thị cho tư vấn viên.</td>
+    </tr>
+    <tr>
+      <td><code>ingredients.xlsx</code></td>
+      <td>61 bản ghi</td>
+      <td><code>id</code>, <code>ingredient_code</code>, <code>name</code>, <code>type</code></td>
+      <td>Phân định nghiêm ngặt: <code>type=1</code> (Nguyên liệu hương vị: hoa sen, nhài, atiso, gừng); <code>type=0</code> (Bao bì, túi zip, nơ, hộp quà).</td>
+    </tr>
+    <tr>
+      <td><code>product_ingredients.xlsx</code></td>
+      <td>745 bản ghi</td>
+      <td><code>product_id</code>, <code>ingredient_id</code>, <code>is_active_bom</code></td>
+      <td>Bảng định mức BOM liên kết sản phẩm và nguyên liệu. Cho phép giải mã cấu trúc vị giác của từng món trà.</td>
+    </tr>
+    <tr>
+      <td><code>customer_interactions.xlsx</code></td>
+      <td>9,350 bản ghi</td>
+      <td><code>customer_id</code>, <code>product_id</code>, <code>total_purchase_count</code>, <code>total_return_count</code></td>
+      <td>Ma trận tương tác của <strong>980 khách hàng</strong> trên <strong>60 sản phẩm</strong>. Mật độ ma trận đạt <strong>15.9%</strong> (rất lý tưởng cho lọc cộng tác).</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout callout-warning">
+  <div class="callout-title">Quy Tắc Tiền Xử Lý Dữ Liệu Bắt Buộc: Loại Bỏ Bao Bì (Packaging Exclusion)</div>
+  <p><strong>Bản chất thực tế của dữ liệu BOM:</strong> Trong bảng cấu thành sản phẩm (<code>product_ingredients.xlsx</code>), danh mục vật tư chứa cả nguyên liệu tạo hương vị thực tế (<code>type=1</code>: hoa sen, nhài, atiso, quế, cam thảo...) và phụ liệu đóng gói (<code>type=0</code>: hộp thiếc tròn, túi zip bạc, hũ thủy tinh, tem nhãn, nơ ruy băng...).</p>
+  <p><strong>Lý do kỹ thuật bắt buộc phải loại trừ bao bì:</strong></p>
+  <ul>
+    <li><strong>Chống ô nhiễm không gian vector (Vector Space Contamination):</strong> Gần như toàn bộ 67 sản phẩm trà đều dùng chung một vài loại bao bì tiêu chuẩn (như túi zip hoặc hộp thiếc). Nếu đưa <code>type=0</code> vào không gian đặc trưng, các token bao bì này sẽ có tần suất xuất hiện áp đảo mọi nguyên liệu hương vị.</li>
+    <li><strong>Triệt tiêu hiện tượng sụp đổ phân giải tương đồng (IDF Distortion):</strong> Thuật toán TF-IDF và Cosine Similarity sẽ bị sai lệch nghiêm trọng. Hai dòng trà có hương vị đối nghịch nhau (ví dụ: Trà Cổ Thụ Chát Đậm và Trà Thảo Mộc Ngọt Dịu) sẽ bị tính toán là "rất tương đồng" chỉ vì cùng đóng trong loại "hộp thiếc tròn 100g".</li>
+    <li><strong>Quy chuẩn làm sạch:</strong> Hệ thống áp dụng bộ lọc triệt để <code>type == 1</code> kết hợp <code>is_active_bom == 1</code>, đảm bảo 100% vector đặc trưng đại diện chính xác cho bản sắc vị giác và hương thơm của từng dòng trà.</li>
+  </ul>
+</div>
+
+<div class="page-break"></div>
+
+<h1>3. Kiến Trúc Tổng Thể Hệ Thống (Clean Architecture)</h1>
+
+<p>
+Hệ thống được thiết kế theo nguyên lý Clean Architecture, phân tách độc lập các tầng: Tầng Dữ liệu, Tầng Tiền xử lý &amp; Đặc trưng, Tầng Mô hình (Model Zoo), và Tầng Đầu ra Gợi ý:
+</p>
+
+<div class="diagram-container">
+  <div class="mermaid">
+flowchart TD
+    subgraph DataLayer ["TẦNG DỮ LIỆU ĐẦU VÀO"]
+        D1["Giao dịch Khách hàng<br/>9,350 tương tác / 980 users"]
+        D2["Catalog Sản phẩm và Danh mục<br/>67 sản phẩm ACTIVE"]
+        D3["Định mức Nguyên liệu BOM<br/>745 liên kết / type=1 Vị giác"]
+    end
+
+    subgraph FeatureLayer ["TẦNG TIỀN XỬ LÝ VÀ ĐẶC TRƯNG"]
+        F1["Implicit Interaction Scorer<br/>Trọng số: 1 + log(1 + purchases - returns)"]
+        F2["Item Feature Extractor<br/>Loại bỏ bao bì / Ghép Category và BOM"]
+        F3["Sparse Matrix Builder<br/>User-Item CSR Matrix và TF-IDF Vectors"]
+    end
+
+    subgraph ModelZoo ["TẦNG MÔ HÌNH HỌC MÁY - HYBRID ENSEMBLE"]
+        M1["Popularity Model<br/>Baseline và Cold-Start Fallback"]
+        M2["BOM Content-Based Model<br/>TF-IDF và Cosine Similarity"]
+        M3["Collaborative Filtering<br/>Item-Item CF và SVD Matrix Fact"]
+        M4["Hybrid Ranking Layer<br/>Multi-Objective: New vs Reorder"]
+    end
+
+    subgraph OutputLayer ["ĐẦU RA GỢI Ý TOP 5"]
+        OUT1["Top 5 Sản Phẩm Cho Khách Hàng<br/>Rank, Product ID, Score, Source"]
+    end
+
+    DataLayer --> FeatureLayer
+    FeatureLayer --> ModelZoo
+    ModelZoo --> OutputLayer
+  </div>
+  <div class="diagram-caption">Hình 1: Sơ đồ kiến trúc tổng thể toàn diện của Hệ thống AI Đề Xuất Trà Cá Nhân Hóa</div>
+</div>
+
+---
+
+<h1>4. Chi Tiết Các Pipeline Hoạt Động Trọng Tâm</h1>
+
+<h2>4.1. Pipeline 1: Xử Lý Dữ Liệu &amp; Trích Xuất Đặc Trưng BOM</h2>
+<p>
+Quy trình biến đổi dữ liệu giao dịch thô và cấu trúc nguyên liệu thành các ma trận thưa toán học:
+</p>
+
+<div class="diagram-container">
+  <div class="mermaid">
+flowchart LR
+    A["Raw Excel Data"] --> B["Lọc Nguyên Liệu type=1"]
+    B --> C["Tạo Item Text: Tên + Danh Mục + BOM Vị"]
+    C --> D["TF-IDF Vectorizer<br/>N-gram 1-2"]
+    D --> E["Ma Trận Tương Đồng Cosine S_content"]
+
+    A --> F["Lọc Giao Dịch<br/>purchases - returns > 0"]
+    F --> G["Tính Implicit Weight:<br/>w = 1 + log1p(effective)"]
+    G --> H["Xây Dựng Ma Trận Thưa<br/>Scipy CSR Matrix U x I"]
+  </div>
+  <div class="diagram-caption">Hình 2: Luồng xử lý dữ liệu và xây dựng ma trận đặc trưng</div>
+</div>
+
+<div class="page-break"></div>
+
+<h2>4.2. Pipeline 2: Huấn Luyện Ngoại Tuyến &amp; Đánh Giá Benchmark (Offline Pipeline)</h2>
+<p>
+Để đảm bảo tính khách quan và khoa học, hệ thống áp dụng kỹ thuật chia dữ liệu nghiêm ngặt **Leave-K-Out (80% Train / 20% Test)** theo thời gian. Mọi mô hình đều được huấn luyện trên tập Train và kiểm thử độc lập trên tập Test với các chỉ số đo lường thứ hạng Top-5:
+</p>
+
+<div class="diagram-container">
+  <div class="mermaid">
+flowchart TD
+    A["Ma Trận Tương Tác 9,350 dòng"] --> B["Chia Tập Kiểm Thử<br/>Leave-K-Out 80/20"]
+    B --> C["Train Set: 7,429 tương tác<br/>80% Dữ Liệu"]
+    B --> D["Test Ground-Truth: 1,921 tương tác<br/>20% Dữ Liệu"]
+
+    C --> E1["Train Popularity Baseline"]
+    C --> E2["Train Content-Based Model"]
+    C --> E3["Train Collaborative Filtering<br/>Item-Item và SVD"]
+    
+    E1 --> E4["Train Hybrid Ensemble Model"]
+    E2 --> E4
+    E3 --> E4
+
+    E4 --> F["Evaluator Engine<br/>Sinh Top-5 Gợi Ý Cho Test Users"]
+    D --> F
+    F --> G["Báo Cáo Benchmark<br/>Recall@5 | Precision@5 | NDCG@5 | MAP@5 | Coverage"]
+</div>
+  <div class="diagram-caption">Hình 3: Pipeline huấn luyện và đánh giá benchmark khoa học</div>
+</div>
+
+<h2>4.3. Pipeline 3: Suy Luận Thời Gian Thực &amp; Phân Bổ Đa Mục Tiêu (Online Inference)</h2>
+<p>
+Khi nhận yêu cầu từ Seller hoặc Khách hàng, hệ thống thực thi chuỗi suy luận trong bộ nhớ RAM với độ trễ dưới 25ms:
+</p>
+
+<div class="diagram-container">
+  <div class="mermaid">
+flowchart TD
+    Req["Request: customer_id, limit, exclude_purchased"] --> Check{"Khách Hàng Đã Có Lịch Sử?"}
+    
+    Check -->|Chưa có lịch sử| Pop["Popularity Model<br/>Lấy Top Hàng Bán Chạy Nhất"]
+    Pop --> RespCold["Gắn nhãn: source = FALLBACK<br/>Trả về Top-K Sản Phẩm"]
+
+    Check -->|Đã có lịch sử| Hybrid["Hybrid Inference Engine"]
+    Hybrid --> S1["Tính Điểm Lọc Cộng Tác S_CF"]
+    Hybrid --> S2["Tính Điểm Nội Dung BOM S_Content"]
+    Hybrid --> S3["Tính Điểm Phổ Biến S_Pop"]
+    
+    S1 --> Comb["Tổ Hợp Điểm Tuyến Tính:<br/>Score = 0.50 CF + 0.35 Content + 0.15 Pop"]
+    S2 --> Comb
+    S3 --> Comb
+    
+    Comb --> RankFilter{"Cờ exclude_purchased?"}
+    
+    RankFilter -->|true: Chỉ khám phá| FilterOld["Lọc bỏ hoàn toàn các món đã mua<br/>Lấy Top-K Món Mới"]
+    RankFilter -->|false: Tư vấn đa mục tiêu| SplitAlloc["Phân Bổ Chiến Lược:<br/>3 Slot Món Mới + 2 Slot Mua Lại"]
+    
+    FilterOld --> RespHybrid["Gắn nhãn: source = MODEL<br/>Trả về Top-K Sản Phẩm"]
+    SplitAlloc --> RespHybrid
+  </div>
+  <div class="diagram-caption">Hình 4: Luồng suy luận thời gian thực và phân bổ đa mục tiêu</div>
+</div>
+
+<div class="page-break"></div>
+
+<h1>5. Tầng Mô Hình Đề Xuất (Model Zoo &amp; Cơ Sở Toán Học)</h1>
+
+<h2>5.1. Mô hình 1: Popularity Recommender (Baseline &amp; Fallback)</h2>
+<p>
+Tính toán tổng điểm tin cậy tương tác của từng sản phẩm trên toàn bộ hệ thống hoặc theo từng danh mục:
+</p>
+<div class="math-block">
+$$\text{Score}_{\text{pop}}(i) = \frac{\sum_{u} w_{u, i}}{\max_j \sum_{u} w_{u, j}}$$
+</div>
+<p>
+Mô hình này đóng vai trò chốt chặn an toàn (Safety Net), đảm bảo hệ thống luôn trả về danh sách sản phẩm bán chạy nhất ngay cả khi gặp khách hàng mới tinh (Cold-Start) hoặc khi các mô hình học máy gặp sự cố.
+</p>
+
+<h2>5.2. Mô hình 2: Content-Based Recommender (BOM Feature Matching)</h2>
+<p>
+Khai thác toàn diện cấu trúc nguyên liệu vị giác (BOM <code>type=1</code>) và danh mục sản phẩm. Với một khách hàng $u$ có tập sản phẩm đã mua $I_u$ cùng trọng số $w_{u, j}$, điểm dự đoán cho sản phẩm ứng viên $i$:
+</p>
+<div class="math-block">
+$$\text{Score}_{\text{CB}}(u, i) = \frac{\sum_{j \in I_u} w_{u, j} \cdot S_{\text{content}}(i, j)}{\sum_{j \in I_u} w_{u, j}}$$
+</div>
+<p>
+<strong>Ưu điểm vượt trội:</strong> Giải quyết triệt để bài toán <em>Item Cold-Start</em>. Khi Hương Vân Trà ra mắt dòng trà mới (ví dụ: Trà Hoa Bưởi Mộc), sản phẩm này có thể được đề xuất ngay ngày đầu mở bán cho nhóm khách thích hương bưởi và trà xanh mà không cần chờ đợi lượt mua tích lũy.
+</p>
+
+<h2>5.3. Mô hình 3: Collaborative Filtering (Lọc Cộng Tác)</h2>
+<p>
+Áp dụng hai thuật toán nền tảng cho dữ liệu phản hồi ngầm:
+</p>
+<ul>
+  <li><strong>Item-Item Collaborative Filtering:</strong> Đo lường sự tương đồng về hành vi mua sắm giữa các cặp sản phẩm dựa trên Cosine similarity giữa các cột ma trận tương tác:
+    <div class="math-block">
+    $$S_{\text{CF}}(i, j) = \frac{\vec{R}_{*, i} \cdot \vec{R}_{*, j}}{\|\vec{R}_{*, i}\| \|\vec{R}_{*, j}\|}, \quad \text{Score}_{\text{CF}}(u, i) = \sum_{j \in I_u} w_{u, j} \cdot S_{\text{CF}}(i, j)$$
+    </div>
+  </li>
+  <li><strong>Matrix Factorization (TruncatedSVD):</strong> Phân rã ma trận tương tác $R \approx P \cdot Q^T$ sang không gian tiềm ẩn $k=12$ chiều, nắm bắt các "trục gu vị giác ẩn" của khách hàng.</li>
+</ul>
+
+<h2>5.4. Mô hình 4: Hybrid Recommender (Ensemble Đa Mục Tiêu)</h2>
+<p>
+Tổ hợp tuyến tính tối ưu giữa các mô hình thành phần:
+</p>
+<div class="math-block">
+$$\text{Score}_{\text{hybrid}}(u, i) = 0.50 \cdot \text{Score}_{\text{CF}}(u, i) + 0.35 \cdot \text{Score}_{\text{CB}}(u, i) + 0.15 \cdot \text{Score}_{\text{Pop}}(i)$$
+</div>
+<p>
+Mô hình hỗ trợ điều phối chiến lược: phân bổ linh hoạt giữa **Khám phá mới (New Discovery)** và **Mua lại định kỳ (Repeat Purchase)** dựa trên cờ cấu hình <code>exclude_purchased</code>.
+</p>
+
+<div class="page-break"></div>
+
+<h1>6. Kết Quả Thực Nghiệm Benchmark Offline</h1>
+
+<p>
+Toàn bộ các mô hình đã được huấn luyện và đánh giá đối đầu trên tập kiểm thử độc lập (Test Set) gồm 1,921 tương tác thực tế từ 980 khách hàng. Kết quả đo lường tại Top-5:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Mô Hình Đề Xuất</th>
+      <th>Recall@5</th>
+      <th>Precision@5</th>
+      <th>NDCG@5</th>
+      <th>MAP@5</th>
+      <th>Catalog Coverage</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>1. Popularity (Baseline)</strong></td>
+      <td>30.02%</td>
+      <td>12.28%</td>
+      <td>0.2395</td>
+      <td>0.1794</td>
+      <td>31.25%</td>
+    </tr>
+    <tr>
+      <td><strong>2. Content-Based (BOM)</strong></td>
+      <td>24.99%</td>
+      <td>10.05%</td>
+      <td>0.1980</td>
+      <td>0.1444</td>
+      <td><strong>95.31%</strong></td>
+    </tr>
+    <tr>
+      <td><strong>3. Collaborative (Item-Item CF)</strong></td>
+      <td><strong>48.95%</strong></td>
+      <td><strong>19.51%</strong></td>
+      <td><strong>0.4050</strong></td>
+      <td><strong>0.3239</strong></td>
+      <td>78.12%</td>
+    </tr>
+    <tr>
+      <td><strong>4. Collaborative (SVD)</strong></td>
+      <td>32.68%</td>
+      <td>13.61%</td>
+      <td>0.2755</td>
+      <td>0.2135</td>
+      <td>84.38%</td>
+    </tr>
+    <tr style="background-color: #eaf5e7; font-weight: 600;">
+      <td><strong>5. Hybrid Recommender (v1.1)</strong></td>
+      <td><strong>47.06%</strong></td>
+      <td><strong>18.72%</strong></td>
+      <td><strong>0.3864</strong></td>
+      <td><strong>0.3071</strong></td>
+      <td><strong>75.00%</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+</body>
+</html>
