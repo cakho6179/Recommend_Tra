@@ -68,3 +68,12 @@ class FeedbackStatsResponse(BaseModel):
     unique_products: int
     conversion_rate: float
 
+
+class BatchFeedbackRequest(BaseModel):
+    """Yêu cầu ghi nhận phản hồi một chạm (Batch Feedback)."""
+    customer_id: str = Field(..., description="Mã khách hàng")
+    displayed_product_ids: List[str] = Field(..., description="Danh sách tất cả sản phẩm được hiển thị")
+    purchased_product_ids: List[str] = Field(default=[], description="Danh sách sản phẩm khách chọn mua (các món không nằm trong danh sách này sẽ tự động coi là REJECT)")
+    recommendation_id: Optional[str] = Field(default=None, description="Mã phiên đề xuất (nếu có)")
+
+

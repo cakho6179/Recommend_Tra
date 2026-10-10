@@ -12,6 +12,7 @@ from src.service.schemas import (
     FeedbackEventRequest,
     FeedbackEventResponse,
     FeedbackStatsResponse,
+    BatchFeedbackRequest,
 )
 from src.service.engine import RecommendationEngine
 
@@ -131,6 +132,29 @@ def get_feedback_statistics(
     Lấy số liệu thống kê tổng hợp về dữ liệu phản hồi (Feedback Telemetry).
     """
     return engine.get_feedback_stats()
+
+
+@app.post(
+    "/api/v1/feedback/batch",
+    response_model=dict,
+    tags=["Feedback Loop"],
+)
+def record_batch_feedback_event(
+    request: BatchFeedbackRequest,
+    engine: RecommendationEngine = Depends(get_engine),
+):
+    """
+    Ghi nhận phản hồi một chạm (Batch Single-Action Feedback):
+    - Các món trong purchased_product_ids được ghi nhận 'PURCHASE'.
+    - Tất cả các món còn lại trong displayed_product_ids tự động coi là 'REJECT'.
+    """
+    return engine.record_batch_feedback(
+        customer_id=request.customer_id,
+        displayed_product_ids=request.displayed_product_ids,
+        purchased_product_ids=request.purchased_product_ids,
+        recommendation_id=request.recommendation_id,
+    )
+
 
 
 @app.get("/api/v1/products", tags=["Metadata"])

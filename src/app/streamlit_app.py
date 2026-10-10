@@ -100,38 +100,64 @@ if mode == "Khách Hàng Quen (Đã có mã)":
     c4.metric("Chế độ lọc", "Chỉ món mới" if exclude_purchased else "Bao gồm mua lại")
 
     st.subheader(f"📋 Top {top_k} Sản Phẩm Được Đề Xuất Cho Khách Hàng")
+    st.caption("👉 **Chỉ cần tích chọn các món khách chốt mua**, sau đó bấm nút **[Xác Nhận Khách Mua]** bên dưới. Các món không tích chọn sẽ tự động được ghi nhận là không mua để tối giản thao tác bán hàng.")
 
-    # Hiển thị danh sách gợi ý kèm nút phản hồi tương tác thời gian thực
-    for item in res.recommendations:
-        price_range = f"{item.min_price:,.0f} - {item.max_price:,.0f} đ" if item.min_price else "Liên hệ"
-        with st.container():
-            col_rank, col_info, col_score, col_act1, col_act2 = st.columns([1, 4, 2, 2, 2])
-            
-            with col_rank:
-                st.markdown(f"### **#{item.rank}**")
-            
-            with col_info:
-                st.markdown(f"**{item.product_name or item.product_code}**")
-                st.caption(f"Danh mục: {item.category_name or 'Khác'} | SKU: `{item.product_code}` | {price_range}")
-            
-            with col_score:
-                st.metric("Độ phù hợp", f"{item.score * 100:.1f}%")
-            
-            with col_act1:
-                st.write("")
-                if st.button("🛒 Khách mua", key=f"buy_{selected_customer}_{item.product_id}"):
-                    engine.record_feedback(selected_customer, item.product_id, "PURCHASE", rank=item.rank)
-                    st.success(f"Đã lưu khách mua {item.product_name or item.product_code}!")
-                    st.rerun()
+    # Form phản hồi một chạm cho nhân viên bán hàng
+    with st.form(key=f"order_feedback_form_{selected_customer}"):
+        selected_pids = []
+        displayed_pids = []
 
-            with col_act2:
-                st.write("")
-                if st.button("❌ Không thích", key=f"rej_{selected_customer}_{item.product_id}"):
-                    engine.record_feedback(selected_customer, item.product_id, "REJECT", rank=item.rank)
-                    st.warning(f"Đã ghi nhận bỏ qua {item.product_name or item.product_code}.")
-                    st.rerun()
+        for item in res.recommendations:
+            displayed_pids.append(item.product_id)
+            price_range = f"{item.min_price:,.0f} - {item.max_price:,.0f} đ" if item.min_price else "Liên hệ"
             
-            st.divider()
+            with st.container():
+                col_check, col_rank, col_info, col_score = st.columns([1, 1, 5, 2])
+                
+                with col_check:
+                    st.write("")
+                    is_checked = st.checkbox(
+                        "Mua",
+                        key=f"chk_{selected_customer}_{item.product_id}",
+                        label_visibility="collapsed",
+                    )
+                    if is_checked:
+                        selected_pids.append(item.product_id)
+                
+                with col_rank:
+                    st.markdown(f"### **#{item.rank}**")
+                
+                with col_info:
+                    st.markdown(f"**{item.product_name or item.product_code}**")
+                    st.caption(f"Danh mục: {item.category_name or 'Khác'} | SKU: `{item.product_code}` | {price_range}")
+                
+                with col_score:
+                    st.metric("Độ phù hợp", f"{item.score * 100:.1f}%")
+                
+                st.divider()
+
+        # NÚT BẤM DUY NHẤT
+        submit_btn = st.form_submit_button(
+            "🛒 Xác Nhận Khách Mua (Các món không tích tự động coi là không mua)",
+            type="primary",
+            use_container_width=True,
+        )
+
+        if submit_btn:
+            batch_result = engine.record_batch_feedback(
+                customer_id=selected_customer,
+                displayed_product_ids=displayed_pids,
+                purchased_product_ids=selected_pids,
+            )
+            purchased_cnt = batch_result["purchased_count"]
+            rejected_cnt = batch_result["rejected_count"]
+            
+            if purchased_cnt > 0:
+                st.success(f"✅ Đã ghi nhận: Khách mua {purchased_cnt} món. {rejected_cnt} món còn lại tự động ghi nhận là không mua!")
+            else:
+                st.info(f"ℹ️ Đã ghi nhận: Khách không mua món nào trong đợt tư vấn này ({rejected_cnt} món tự động ghi nhận là không mua).")
+            st.rerun()
+
 
     # Danh sách các sản phẩm đã mua trước đây
     if hist_items:

@@ -99,6 +99,20 @@ def test_api_feedback_endpoints():
     assert stats_data["total_events"] >= 1
     assert stats_data["purchases"] >= 1
 
+    # 3. Gửi phản hồi hàng loạt (Batch feedback: 1 món mua, 4 món tự động coi là REJECT)
+    batch_payload = {
+        "customer_id": "test_cust_batch",
+        "displayed_product_ids": ["p1", "p2", "p3", "p4", "p5"],
+        "purchased_product_ids": ["p2"],
+    }
+    batch_res = client.post("/api/v1/feedback/batch", json=batch_payload)
+    assert batch_res.status_code == 200
+    batch_data = batch_res.json()
+    assert batch_data["purchased_count"] == 1
+    assert batch_data["rejected_count"] == 4
+    assert batch_data["total_processed"] == 5
+
+
 
 def test_retrain_pipeline_gatekeeper():
     baseline_cfg = load_baseline_config()

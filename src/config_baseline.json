@@ -53,6 +53,30 @@
       "map_at_5": 0.3234,
       "catalog_coverage": 0.7812,
       "status": "REJECTED_BELOW_BASELINE"
+    },
+    {
+      "iteration": 5,
+      "date": "2026-10-10T15:46:09.190676",
+      "trigger": "FEEDBACK_LOOP_WEEKLY",
+      "events_count": 17,
+      "recall_at_5": 0.4895,
+      "ndcg_at_5": 0.4047,
+      "precision_at_5": 0.1951,
+      "map_at_5": 0.3235,
+      "catalog_coverage": 0.7812,
+      "status": "REJECTED_BELOW_BASELINE"
+    },
+    {
+      "iteration": 6,
+      "date": "2026-10-10T15:46:45.200642",
+      "trigger": "FEEDBACK_LOOP_WEEKLY",
+      "events_count": 25,
+      "recall_at_5": 0.4895,
+      "ndcg_at_5": 0.4047,
+      "precision_at_5": 0.1951,
+      "map_at_5": 0.3235,
+      "catalog_coverage": 0.7812,
+      "status": "REJECTED_BELOW_BASELINE"
     }
   ]
 }

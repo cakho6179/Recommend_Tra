@@ -233,6 +233,46 @@ class RecommendationEngine:
         """Lấy thống kê dữ liệu phản hồi đã tích lũy."""
         return self.feedback_store.get_stats()
 
+    def record_batch_feedback(
+        self,
+        customer_id: str,
+        displayed_product_ids: List[str],
+        purchased_product_ids: List[str],
+        recommendation_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Ghi nhận phản hồi một chạm (Batch Single-Action Feedback):
+        - Các món trong purchased_product_ids được ghi nhận 'PURCHASE'.
+        - Tất cả các món còn lại trong displayed_product_ids tự động coi là 'REJECT'.
+        """
+        purchased_set = set(purchased_product_ids)
+        recorded_events = []
+        purchased_count = 0
+        rejected_count = 0
+
+        for rank, pid in enumerate(displayed_product_ids, 1):
+            action = "PURCHASE" if pid in purchased_set else "REJECT"
+            evt = self.record_feedback(
+                customer_id=customer_id,
+                product_id=pid,
+                action=action,
+                rank=rank,
+                recommendation_id=recommendation_id,
+            )
+            recorded_events.append(evt)
+            if action == "PURCHASE":
+                purchased_count += 1
+            else:
+                rejected_count += 1
+
+        return {
+            "status": "success",
+            "customer_id": customer_id,
+            "purchased_count": purchased_count,
+            "rejected_count": rejected_count,
+            "total_processed": len(recorded_events),
+        }
+
 
     def get_guest_recommendations(
         self,
