@@ -9,6 +9,9 @@ from src.service.schemas import (
     CustomerRecommendationResponse,
     GuestRecommendationRequest,
     SystemHealthResponse,
+    FeedbackEventRequest,
+    FeedbackEventResponse,
+    FeedbackStatsResponse,
 )
 from src.service.engine import RecommendationEngine
 
@@ -88,7 +91,50 @@ def get_guest_recommendations(
     return engine.get_guest_recommendations(request)
 
 
+@app.post(
+    "/api/v1/feedback",
+    response_model=FeedbackEventResponse,
+    tags=["Feedback Loop"],
+)
+def record_feedback_event(
+    request: FeedbackEventRequest,
+    engine: RecommendationEngine = Depends(get_engine),
+):
+    """
+    Ghi nhận phản hồi tương tác (Feedback Loop) từ quầy hoặc ứng dụng:
+    - action: 'PURCHASE', 'CLICK', 'REJECT', 'RETURN'
+    - Tự động áp dụng Real-time Taste Boost trong RAM cho các lượt gợi ý kế tiếp.
+    """
+    event = engine.record_feedback(
+        customer_id=request.customer_id,
+        product_id=request.product_id,
+        action=request.action,
+        rank=request.rank or 1,
+        recommendation_id=request.recommendation_id,
+    )
+    return FeedbackEventResponse(
+        status="success",
+        message=f"Đã ghi nhận phản hồi '{request.action}' cho khách hàng {request.customer_id}",
+        recorded_event=event,
+    )
+
+
+@app.get(
+    "/api/v1/feedback/stats",
+    response_model=FeedbackStatsResponse,
+    tags=["Feedback Loop"],
+)
+def get_feedback_statistics(
+    engine: RecommendationEngine = Depends(get_engine),
+):
+    """
+    Lấy số liệu thống kê tổng hợp về dữ liệu phản hồi (Feedback Telemetry).
+    """
+    return engine.get_feedback_stats()
+
+
 @app.get("/api/v1/products", tags=["Metadata"])
 def get_active_products(engine: RecommendationEngine = Depends(get_engine)):
     """Danh sách tất cả sản phẩm trà đang hoạt động (ACTIVE)."""
     return list(engine.item_dict.values())
+

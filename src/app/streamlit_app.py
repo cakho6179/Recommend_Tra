@@ -1,6 +1,7 @@
 """
 Giao diện Trợ Lý Tư Vấn Bán Trà (Hương Vân Trà - Seller Dashboard)
 Xây dựng trên Streamlit, tuân thủ chuẩn v1.1.
+Tích hợp Feedback Loop thời gian thực & Cổng sát hạch Baseline.
 """
 import sys
 from pathlib import Path
@@ -18,16 +19,18 @@ st.set_page_config(
     layout="wide",
 )
 
+
 @st.cache_resource
 def load_engine():
     engine = RecommendationEngine.get_instance()
     engine.initialize()
     return engine
 
+
 engine = load_engine()
 
 st.title("🍵 Hương Vân Trà — Trợ Lý Đề Xuất Bán Hàng (v1.1)")
-st.markdown("*Hệ thống AI đề xuất sản phẩm trà cá nhân hóa hỗ trợ Seller tư vấn tại quầy & online.*")
+st.markdown("*Hệ thống AI đề xuất sản phẩm trà cá nhân hóa & Vòng lặp phản hồi tự học (Continuous Learning).*")
 
 # Sidebar
 st.sidebar.header("⚙️ Cấu Hình Tư Vấn")
@@ -36,13 +39,34 @@ top_k = st.sidebar.slider("Số lượng gợi ý (Top-K):", min_value=3, max_va
 exclude_purchased = st.sidebar.checkbox(
     "Chỉ gợi ý món mới (Khám phá)",
     value=False,
-    help="Bật tùy chọn này để loại bỏ các món khách đã từng mua, tập trung khám phá sản phẩm mới."
+    help="Bật tùy chọn này để loại bỏ các món khách đã từng mua, tập trung khám phá sản phẩm mới.",
 )
+
+# Sidebar: Thống kê Feedback Loop
+st.sidebar.markdown("---")
+st.sidebar.header("📈 Vòng Lặp Phản Hồi (Feedback Loop)")
+fb_stats = engine.get_feedback_stats()
+st.sidebar.metric("Tổng tương tác thu thập", fb_stats["total_events"])
+col_sb1, col_sb2 = st.sidebar.columns(2)
+col_sb1.metric("🛒 Chốt mua", fb_stats["purchases"])
+col_sb2.metric("❌ Từ chối", fb_stats["rejects"])
+if fb_stats["total_events"] > 0:
+    st.sidebar.caption(f"Tỷ lệ chuyển đổi: **{fb_stats['conversion_rate'] * 100:.1f}%**")
+
+# Nút kích hoạt Retrain kiểm thử ngay trên UI
+if st.sidebar.button("🔄 Chạy Retrain & Sát Hạch Baseline"):
+    from scripts.retrain_pipeline import run_retrain_pipeline
+    with st.sidebar.status("Đang chạy sát hạch mô hình..."):
+        retrain_res = run_retrain_pipeline()
+    if retrain_res["is_promoted"]:
+        st.sidebar.success(f"✅ Đạt chuẩn! Recall@5: {retrain_res['new_metrics']['recall'] * 100:.2f}%")
+    else:
+        st.sidebar.warning("🛡️ Giữ nguyên Baseline hiện hành (Mô hình mới chưa vượt chuẩn an toàn).")
 
 if mode == "Khách Hàng Quen (Đã có mã)":
     # Lấy danh sách khách hàng mẫu
     sample_customers = list(engine.user_history_map.keys())
-    
+
     col1, col2 = st.columns([2, 1])
     with col1:
         selected_customer = st.selectbox(
@@ -67,29 +91,47 @@ if mode == "Khách Hàng Quen (Đã có mã)":
     # Hiển thị thông tin tổng quan
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Khách hàng", selected_customer[:8] + "...")
-    
+
     source_badge = "🧠 AI MODEL (Hybrid)" if res.source == "MODEL" else "⭐ FALLBACK (Hàng bán chạy)"
     c2.metric("Nguồn tính toán", source_badge)
-    
+
     hist_items = engine.user_history_map.get(selected_customer, [])
     c3.metric("Số món đã từng mua", len(hist_items))
     c4.metric("Chế độ lọc", "Chỉ món mới" if exclude_purchased else "Bao gồm mua lại")
 
     st.subheader(f"📋 Top {top_k} Sản Phẩm Được Đề Xuất Cho Khách Hàng")
-    
-    # Hiển thị dạng bảng trực quan
-    rec_data = []
+
+    # Hiển thị danh sách gợi ý kèm nút phản hồi tương tác thời gian thực
     for item in res.recommendations:
         price_range = f"{item.min_price:,.0f} - {item.max_price:,.0f} đ" if item.min_price else "Liên hệ"
-        rec_data.append({
-            "Hạng": f"#{item.rank}",
-            "Tên Sản Phẩm": item.product_name or item.product_code,
-            "Danh Mục": item.category_name or "Khác",
-            "Mã SKU": item.product_code,
-            "Độ Phù Hợp (Score)": f"{item.score * 100:.1f}%",
-            "Khoảng Giá": price_range,
-        })
-    st.table(pd.DataFrame(rec_data))
+        with st.container():
+            col_rank, col_info, col_score, col_act1, col_act2 = st.columns([1, 4, 2, 2, 2])
+            
+            with col_rank:
+                st.markdown(f"### **#{item.rank}**")
+            
+            with col_info:
+                st.markdown(f"**{item.product_name or item.product_code}**")
+                st.caption(f"Danh mục: {item.category_name or 'Khác'} | SKU: `{item.product_code}` | {price_range}")
+            
+            with col_score:
+                st.metric("Độ phù hợp", f"{item.score * 100:.1f}%")
+            
+            with col_act1:
+                st.write("")
+                if st.button("🛒 Khách mua", key=f"buy_{selected_customer}_{item.product_id}"):
+                    engine.record_feedback(selected_customer, item.product_id, "PURCHASE", rank=item.rank)
+                    st.success(f"Đã lưu khách mua {item.product_name or item.product_code}!")
+                    st.rerun()
+
+            with col_act2:
+                st.write("")
+                if st.button("❌ Không thích", key=f"rej_{selected_customer}_{item.product_id}"):
+                    engine.record_feedback(selected_customer, item.product_id, "REJECT", rank=item.rank)
+                    st.warning(f"Đã ghi nhận bỏ qua {item.product_name or item.product_code}.")
+                    st.rerun()
+            
+            st.divider()
 
     # Danh sách các sản phẩm đã mua trước đây
     if hist_items:
@@ -107,7 +149,7 @@ if mode == "Khách Hàng Quen (Đã có mã)":
 else:
     # Chế độ khách vãng lai
     st.info("💡 Với khách hàng mới chưa từng mua hàng, hệ thống kích hoạt cơ chế **Popularity Fallback** để gợi ý các dòng trà bán chạy nhất theo danh mục.")
-    
+
     categories = engine.raw_data.get("categories", pd.DataFrame())
     cat_options = {"Tất cả danh mục": None}
     for _, row in categories.iterrows():
@@ -117,6 +159,7 @@ else:
     selected_cat_id = cat_options[selected_cat_name]
 
     from src.service.schemas import GuestRecommendationRequest
+
     guest_req = GuestRecommendationRequest(category_id=selected_cat_id, limit=top_k)
     res = engine.get_guest_recommendations(guest_req)
 

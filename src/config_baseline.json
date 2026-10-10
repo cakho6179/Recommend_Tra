@@ -1,0 +1,58 @@
+{
+  "system": "Hương Vân Trà - Personalized Tea Recommender Service",
+  "version": "1.1.0",
+  "primary_model": "ItemItemRecommender",
+  "baseline_metrics": {
+    "recall_at_5": 0.4895,
+    "precision_at_5": 0.1951,
+    "ndcg_at_5": 0.405,
+    "map_at_5": 0.3239,
+    "catalog_coverage": 0.7812
+  },
+  "retrain_history": [
+    {
+      "iteration": 1,
+      "date": "2026-09-26T16:00:00",
+      "trigger": "INITIAL_BASELINE",
+      "recall_at_5": 0.4895,
+      "ndcg_at_5": 0.405,
+      "status": "ACTIVE_PRODUCTION"
+    },
+    {
+      "iteration": 2,
+      "date": "2026-10-10T15:28:53.880655",
+      "trigger": "FEEDBACK_LOOP_WEEKLY",
+      "events_count": 6,
+      "recall_at_5": 0.4895,
+      "ndcg_at_5": 0.4047,
+      "precision_at_5": 0.1951,
+      "map_at_5": 0.3234,
+      "catalog_coverage": 0.7812,
+      "status": "REJECTED_BELOW_BASELINE"
+    },
+    {
+      "iteration": 3,
+      "date": "2026-10-10T15:29:32.137762",
+      "trigger": "FEEDBACK_LOOP_WEEKLY",
+      "events_count": 9,
+      "recall_at_5": 0.4895,
+      "ndcg_at_5": 0.4047,
+      "precision_at_5": 0.1951,
+      "map_at_5": 0.3234,
+      "catalog_coverage": 0.7812,
+      "status": "REJECTED_BELOW_BASELINE"
+    },
+    {
+      "iteration": 4,
+      "date": "2026-10-10T15:31:45.468615",
+      "trigger": "FEEDBACK_LOOP_WEEKLY",
+      "events_count": 9,
+      "recall_at_5": 0.4895,
+      "ndcg_at_5": 0.4047,
+      "precision_at_5": 0.1951,
+      "map_at_5": 0.3234,
+      "catalog_coverage": 0.7812,
+      "status": "REJECTED_BELOW_BASELINE"
+    }
+  ]
+}

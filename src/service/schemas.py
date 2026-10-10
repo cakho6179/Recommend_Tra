@@ -39,3 +39,32 @@ class SystemHealthResponse(BaseModel):
     model_loaded: bool
     total_active_products: int
     total_trained_customers: int
+
+
+class FeedbackEventRequest(BaseModel):
+    """Yêu cầu ghi nhận sự kiện phản hồi từ quầy hoặc web."""
+    customer_id: str = Field(..., description="Mã định danh khách hàng")
+    product_id: str = Field(..., description="Mã định danh sản phẩm")
+    action: str = Field(..., description="Hành động: 'PURCHASE', 'CLICK', 'REJECT', 'RETURN'")
+    rank: Optional[int] = Field(default=1, ge=1, le=20, description="Vị trí hiển thị của sản phẩm (Top 1-20)")
+    recommendation_id: Optional[str] = Field(default=None, description="Mã phiên đề xuất (nếu có)")
+
+
+class FeedbackEventResponse(BaseModel):
+    """Phản hồi sau khi lưu vết sự kiện."""
+    status: str = "success"
+    message: str
+    recorded_event: dict
+
+
+class FeedbackStatsResponse(BaseModel):
+    """Thống kê tổng hợp về dữ liệu phản hồi tích lũy."""
+    total_events: int
+    purchases: int
+    clicks: int
+    rejects: int
+    returns: int
+    unique_customers: int
+    unique_products: int
+    conversion_rate: float
+

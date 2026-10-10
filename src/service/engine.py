@@ -4,12 +4,13 @@ Recommendation Engine chuẩn hóa v1.1:
 - Hỗ trợ tham số exclude_purchased: True (chỉ hàng mới) hoặc False (bao gồm mua lại).
 - Tích hợp Fallback Popularity tự động khi gặp khách mới.
 """
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Set
 import pandas as pd
 import numpy as np
 
 from src.data.loader import DataLoader
 from src.data.preprocessor import DataPreprocessor
+from src.data.feedback_store import FeedbackStore
 from src.models.hybrid import HybridRecommender
 from src.models.popularity import PopularityRecommender
 from src.service.schemas import (
@@ -23,6 +24,7 @@ from src.service.schemas import (
 class RecommendationEngine:
     """
     Engine dịch vụ trung tâm tuân thủ chuẩn v1.1.
+    Tích hợp Feedback Loop: In-Memory Taste Boost & Cool-down Suppression.
     """
 
     _instance: Optional["RecommendationEngine"] = None
@@ -37,6 +39,11 @@ class RecommendationEngine:
         self.item_dict: Dict[str, Dict[str, Any]] = {}
         self.user_history_map: Dict[str, List[str]] = {}
         self.active_pids: List[str] = []
+
+        # Tầng lưu trữ và bộ đệm Feedback Loop tức thì
+        self.feedback_store: FeedbackStore = FeedbackStore()
+        self.user_dynamic_boost: Dict[str, Dict[str, float]] = {}
+        self.user_suppressed_items: Dict[str, Set[str]] = {}
 
     @classmethod
     def get_instance(cls) -> "RecommendationEngine":
@@ -103,29 +110,47 @@ class RecommendationEngine:
         Lấy Top-K sản phẩm cho khách hàng:
         - Nếu khách hàng có trong lịch sử: chạy hybrid_model -> source = "MODEL"
         - Nếu khách mới tinh (Cold-start): chạy pop_model -> source = "FALLBACK"
+        - Tự động áp dụng Real-time Taste Boost & Cool-down Suppression từ Feedback Loop.
         """
         if not self.is_initialized or self.hybrid_model is None or self.pop_model is None:
             self.initialize()
 
         is_known_user = customer_id in self.user_history_map
+        fetch_k = max(limit * 2, 10)
 
         if is_known_user:
             source = "MODEL"
             raw_recs = self.hybrid_model.recommend(
                 user_id=customer_id,
-                top_k=limit,
+                top_k=fetch_k,
                 exclude_purchased=exclude_purchased,
             )
         else:
             source = "FALLBACK"
             raw_recs = self.pop_model.recommend(
                 user_id=customer_id,
-                top_k=limit,
+                top_k=fetch_k,
                 exclude_purchased=exclude_purchased,
             )
 
+        # Áp dụng cơ chế Feedback Loop tức thì (Real-time In-memory Boost & Cool-down)
+        suppressed = self.user_suppressed_items.get(customer_id, set())
+        boosts = self.user_dynamic_boost.get(customer_id, {})
+
+        adjusted_recs = []
+        for pid, score in raw_recs:
+            if pid in suppressed:
+                adj_score = max(0.0, score - 0.50)
+            else:
+                boost = boosts.get(pid, 0.0)
+                adj_score = min(1.0, max(0.0, score + boost))
+            adjusted_recs.append((pid, adj_score))
+
+        adjusted_recs.sort(key=lambda x: x[1], reverse=True)
+        top_recs = adjusted_recs[:limit]
+
         items: List[RecommendationItem] = []
-        for rank, (pid, score) in enumerate(raw_recs, 1):
+        for rank, (pid, score) in enumerate(top_recs, 1):
             info = self.item_dict.get(pid, {})
             item = RecommendationItem(
                 rank=rank,
@@ -145,6 +170,69 @@ class RecommendationEngine:
             top_k=len(items),
             recommendations=items,
         )
+
+    def record_feedback(
+        self,
+        customer_id: str,
+        product_id: str,
+        action: str,
+        rank: int = 1,
+        recommendation_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Ghi nhận phản hồi và cập nhật gu vị giác tức thì (Real-time In-Memory Boost).
+        """
+        action_clean = action.upper().strip()
+        event = self.feedback_store.log_event(
+            customer_id=customer_id,
+            product_id=product_id,
+            action=action_clean,
+            rank=rank,
+            recommendation_id=recommendation_id,
+        )
+
+        if customer_id not in self.user_dynamic_boost:
+            self.user_dynamic_boost[customer_id] = {}
+        if customer_id not in self.user_suppressed_items:
+            self.user_suppressed_items[customer_id] = set()
+
+        if action_clean == "PURCHASE":
+            # Cập nhật lịch sử mua của user
+            if customer_id not in self.user_history_map:
+                self.user_history_map[customer_id] = []
+            if product_id not in self.user_history_map[customer_id]:
+                self.user_history_map[customer_id].append(product_id)
+
+            # Tăng điểm ưu tiên cho sản phẩm vừa mua
+            self.user_dynamic_boost[customer_id][product_id] = (
+                self.user_dynamic_boost[customer_id].get(product_id, 0.0) + 0.35
+            )
+            self.user_suppressed_items[customer_id].discard(product_id)
+
+        elif action_clean == "REJECT":
+            # Tạm ẩn để không lặp lại món khách không thích
+            self.user_suppressed_items[customer_id].add(product_id)
+            self.user_dynamic_boost[customer_id][product_id] = (
+                self.user_dynamic_boost[customer_id].get(product_id, 0.0) - 0.50
+            )
+
+        elif action_clean == "CLICK":
+            self.user_dynamic_boost[customer_id][product_id] = (
+                self.user_dynamic_boost[customer_id].get(product_id, 0.0) + 0.10
+            )
+
+        elif action_clean == "RETURN":
+            self.user_suppressed_items[customer_id].add(product_id)
+            self.user_dynamic_boost[customer_id][product_id] = (
+                self.user_dynamic_boost[customer_id].get(product_id, 0.0) - 1.00
+            )
+
+        return event
+
+    def get_feedback_stats(self) -> Dict[str, Any]:
+        """Lấy thống kê dữ liệu phản hồi đã tích lũy."""
+        return self.feedback_store.get_stats()
+
 
     def get_guest_recommendations(
         self,

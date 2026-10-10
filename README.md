@@ -3,7 +3,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.32+-FF4B4B.svg?logo=streamlit&logoColor=white)](https://streamlit.io)
-[![Tests](https://img.shields.io/badge/PyTest-27%2F27%20Passed-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/PyTest-31%2F31%20Passed-brightgreen.svg)]()
 [![License](https://img.shields.io/badge/License-MIT-green.svg)]()
 
 > **Hệ thống AI đề xuất sản phẩm trà cá nhân hóa thông minh** dành cho chuỗi thương hiệu **Hương Vân Trà**, kết hợp **Lọc cộng tác (Collaborative Filtering)**, **Khai phá cấu trúc nguyên liệu vị giác (BOM Content-Based)** và **Mô hình lai đa mục tiêu (Hybrid Multi-Objective)** nhằm giải quyết bài toán tư vấn bán hàng đa mục tiêu (*Khám phá món mới vs. Mua lại định kỳ*) trong thời gian thực (< 50ms).
@@ -205,7 +205,14 @@ python scripts/train_and_evaluate.py
 ```bash
 python -m pytest tests/ -v
 ```
-*(Tất cả 27/27 unit & integration tests đều vượt qua thành công).*
+*(Tất cả 31/31 unit & integration tests đều vượt qua thành công).*
+
+### 7. Chạy Tự Động Retrain & Sát Hạch Baseline (Feedback Loop)
+
+```bash
+python scripts/retrain_pipeline.py
+```
+*(Gộp phản hồi mới, huấn luyện lại Item-Item CF, và tự động nâng chuẩn Baseline nếu đạt chất lượng).*
 
 ---
 
@@ -268,7 +275,23 @@ Gợi ý cho khách vãng lai / khách mới tinh theo danh mục bán chạy.
 }
 ```
 
-### 3. `GET /health`
+### 3. `POST /api/v1/feedback`
+Ghi nhận phản hồi tương tác (mua, từ chối, click) từ quầy hoặc web và cập nhật gu vị giác tức thì.
+
+**Request Body:**
+```json
+{
+  "customer_id": "014f08dc-e5cf-4df5-aa83-65231c62f2f7",
+  "product_id": "016a1a81-27c5-268f-f943-4fa3132822a6",
+  "action": "PURCHASE",
+  "rank": 1
+}
+```
+
+### 4. `GET /api/v1/feedback/stats`
+Lấy thống kê telemetry của vòng lặp phản hồi (tổng sự kiện, tỷ lệ chốt đơn, số lượt từ chối).
+
+### 5. `GET /api/v1/health`
 Kiểm tra sức khỏe hệ thống và trạng thái nạp dữ liệu.
 
 ---
@@ -293,13 +316,16 @@ Recommend_Tra/
 │       └── recommendation_feedback_loop_sota.md
 ├── src/                                  # Mã nguồn module hóa Clean Architecture
 │   ├── config.py                         # Cấu hình trọng số và siêu tham số
-│   ├── data/                             # Nạp, tiền xử lý, chia train/test
+│   ├── config_baseline.json              # Theo dõi chuẩn sàn Baseline & lịch sử thăng cấp
+│   ├── data/                             # Nạp, tiền xử lý, chia train/test & Feedback Store
+│   │   └── feedback_store.py             # Quản lý lưu trữ & tổng hợp vết phản hồi
 │   ├── models/                           # Model Zoo (Popularity, Content-Based, Item-Item CF, SVD, Hybrid)
 │   ├── evaluation/                       # Chỉ số đo lường Recall, NDCG, MAP, Coverage
 │   ├── service/                          # Engine suy luận, FastAPI app, Schemas
 │   └── app/                              # Giao diện Streamlit Dashboard
 ├── scripts/                              # Kịch bản thực thi tác vụ
 │   ├── train_and_evaluate.py             # Chạy benchmark & demo console
+│   ├── retrain_pipeline.py               # Tự động hóa retrain & sát hạch Baseline
 │   ├── run_api.py                        # Chạy FastAPI REST API Server
 │   ├── run_demo.py                       # Chạy Streamlit Dashboard
 │   └── generate_report_pdf.py            # Biên dịch báo cáo PDF vector
